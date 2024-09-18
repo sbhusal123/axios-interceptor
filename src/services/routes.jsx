@@ -1,0 +1,1 @@
+const TOKEN_FREE_ROUTES = "/api/login"
