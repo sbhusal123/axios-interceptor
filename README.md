@@ -5,7 +5,7 @@
 Basically, the concept is to:
 - Check the expiry of tokens in the request interceptor.
 - If the token is expired, fetch the new token using a refresh token. (Does this by checking `exp` key in token payload)
-- Tokens are stored in localstorage.
+- Tokens are stored in localstorage or may be any storage of your choice, just define the static methods define below.
 
 ## 2. Usage:
 
