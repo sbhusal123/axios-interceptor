@@ -67,6 +67,8 @@ import {requestInterceptor} from './utils'
 
 const API_URL = "https://foo.com/api"
 
+const REFRESH_TOKEN_URL = `${API_URL}/token/refresh/`
+
 const api = axios.create({
     baseURL: API_URL
 })
@@ -75,7 +77,7 @@ requestInterceptor({
     axiosInstance: api,
     tokenStorage: Storage,
     getNewToken: async ({refreshToken}) => {
-        const resp = await axios.post(`${API_URL}/token/refresh/`, {
+        const resp = await axios.post(REFRESH_TOKEN_URL, {
             "refresh": refreshToken
         })
         const token = resp.data.access
