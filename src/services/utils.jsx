@@ -1,18 +1,5 @@
-import axios from 'axios';
-
-import Storage from './storage';
-
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
-
-const API_URL = "http://localhost:8000/api"
-
-export const getAllTokens = () => {
-    return {
-        accessToken: Storage.getAccessToken(),
-        refreshToken: Storage.getRefreshToken()
-    }
-}
 
 export const isTokenExired = (token) => {
     try {
@@ -24,28 +11,61 @@ export const isTokenExired = (token) => {
     }
 }
 
-export const handleGetNewAccessToken = async ({refreshToken, axiosConfig}) => {
-    console.log("Getting and updating new access token:::")
+export const handleTokenRequest = async ({
+    axiosConfig,
+    tokenStorage,
+    getNewToken,
+    onTokenSuccess,
+    onTokenFailure
+}) => {
+    const { refreshToken } = tokenStorage.getAllTokens()
     try {
-        const resp = await axios.post(`${API_URL}/token/refresh/`, {
-            "refresh": refreshToken
-        })
-        const token = resp.data.access
-        Storage.updateAccessToken({
+        const token = await getNewToken({refreshToken})
+        tokenStorage.updateAccessToken({
             accessToken: token
         })
-
-        if(axiosConfig.url == "/token/verify/" && token){
-            axiosConfig.data = {
-                "token": token
-            }
-        } else {
-            axiosConfig.headers["Authorization"] = `Bearer ${token}`;
-        }
-
+        onTokenSuccess({
+            axiosConfig: axiosConfig,
+            accessToken: token
+        })
         return token
     } catch(ex){
-        Storage.removeTokens()
+        onTokenFailure({tokenStorage: tokenStorage})
         throw ex
     }
+}
+
+export const requestInterceptor = ({
+    axiosInstance,
+    getNewToken,
+    onTokenFailure,
+    onTokenSuccess,
+    tokenStorage
+}) => {
+    axiosInstance.interceptors.request.use(async (axiosConfig) => {
+        const {accessToken, refreshToken} = tokenStorage.getAllTokens()
+    
+        if(accessToken && refreshToken) {
+            try {
+                const accessTokenExpired = isTokenExired(accessToken);
+                if (accessTokenExpired) {
+                    await handleTokenRequest({
+                        axiosConfig,
+                        getNewToken,
+                        onTokenFailure,
+                        onTokenSuccess,
+                        tokenStorage
+                    });
+                } else {
+                    axiosConfig.headers["Authorization"] = `Bearer ${accessToken}`
+                }
+            } catch (err) {
+                return config
+            }
+        }
+        
+        return axiosConfig;
+    }, (error) => {
+        return Promise.reject(error);
+    });
 }

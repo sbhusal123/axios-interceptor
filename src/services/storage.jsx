@@ -23,4 +23,11 @@ export default class Storage {
         localStorage.removeItem(ACCESS_TOKEN)
         localStorage.removeItem(REFRESH_TOKEN)
     }
+
+    static getAllTokens(){
+        return {
+            accessToken: Storage.getAccessToken(),
+            refreshToken: Storage.getRefreshToken()
+        }
+    }
 }

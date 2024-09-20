@@ -1,133 +1,107 @@
 # Axios Interceptor for Refreshing Tokens with DRF Simple JWT
 
+## 1. How does this works ??
+
 Basically, the concept is to:
 - Check the expiry of tokens in the request interceptor.
-- Tokens stored in localstorage.
+- If the token is expired, fetch the new token using a refresh token.
+- Tokens are stored in localstorage.
 
-## Storage Class
+## 2. Usage:
+
+### 2.1 Define Storage Class:
+
+This storage class will be used to retrive, update and remove the tokens in. Class would look something like below.
 
 ```js
-const ACCESS_TOKEN = "@accessToken"
-const REFRESH_TOKEN = "@refreshToken"
+class Storage {
+    /**
+     * Note that Storage class should have following methods defined:
+     * getAllTokens
+     * removeTokens
+     * updateAccessToken
+     * setTokens
+    */
 
-export default class Storage {
     static setTokens({accessToken, refreshToken}){
-        localStorage.setItem(ACCESS_TOKEN, accessToken)
-        localStorage.setItem(REFRESH_TOKEN, refreshToken)
+        localStorage.setItem("ACCESS_TOKEN", accessToken)
+        localStorage.setItem("REFRESH_TOKEN", refreshToken)
     }
 
     static updateAccessToken({accessToken}){
-        localStorage.setItem(ACCESS_TOKEN, accessToken)
-    }
-
-    static getAccessToken(){
-        return localStorage.getItem(ACCESS_TOKEN)
-    }
-
-    static getRefreshToken(){
-        return localStorage.getItem(REFRESH_TOKEN)
+        localStorage.setItem("ACCESS_TOKEN", accessToken)
     }
 
     static removeTokens(){
-        localStorage.removeItem(ACCESS_TOKEN)
-        localStorage.removeItem(REFRESH_TOKEN)
+        localStorage.removeItem("ACCESS_TOKEN")
+        localStorage.removeItem("REFRESH_TOKEN")
     }
-}
 
-```
-
-
-## Utils Class
-```js
-import axios from 'axios';
-
-import Storage from './storage';
-
-import { jwtDecode } from 'jwt-decode';
-import dayjs from 'dayjs';
-
-const API_URL = "http://localhost:8000/api"
-
-export const getAllTokens = () => {
-    return {
-        accessToken: Storage.getAccessToken(),
-        refreshToken: Storage.getRefreshToken()
-    }
-}
-
-export const isTokenExired = (token) => {
-    try {
-        const payload = jwtDecode(token)
-        const expiryTime = payload.exp
-        return dayjs.unix(expiryTime).diff(dayjs()) < 1
-    } catch(err){
-        return true
-    }
-}
-
-export const handleGetNewAccessToken = async ({refreshToken, axiosConfig}) => {
-    console.log("Getting and updating new access token:::")
-    try {
-        const resp = await axios.post(`${API_URL}/token/refresh/`, {
-            "refresh": refreshToken
-        })
-        const token = resp.data.access
-        Storage.updateAccessToken({
-            accessToken: token
-        })
-
-        if(axiosConfig.url == "/token/verify/" && token){
-            axiosConfig.data = {
-                "token": token
-            }
-        } else {
-            axiosConfig.headers["Authorization"] = `Bearer ${token}`;
+    static getAllTokens(){
+        return {
+            accessToken: localStorage.getItem("ACCESS_TOKEN"),
+            refreshToken: localStorage.getItem("REFRESH_TOKEN")
         }
-
-        return token
-    } catch(ex){
-        Storage.removeTokens()
-        throw ex
     }
 }
 ```
 
-## Interceptor
+## 2.2. Usage with Axios:
+
+``requestInterceptor`` accepts following params:
+
+- ``axiosInstance`` : actual axios instance.
+
+- ``tokenStorage`` : token storage class.
+
+- ``onTokenFailure`` : called when new token request fails. ``tokenStorage`` as a callback params.
+
+- ``onTokenSuccess`` : called when new token request succeds. ``axiosConfig, accessToken`` as a callback params.
+
+- ``getNewToken`` : axios api call to handle refreshing of token. It must return the string.
 
 ```js
 import axios from 'axios';
 
-import {handleGetNewAccessToken, isTokenExired, getAllTokens} from './utils'
+import {requestInterceptor} from './utils'
 
-const API_URL = "http://localhost:8000/api"
+const API_URL = "https://foo.com/api"
 
 const api = axios.create({
     baseURL: API_URL
 })
 
-
-api.interceptors.request.use(async (config) => {
-    const {accessToken, refreshToken} = getAllTokens()
-
-    if(accessToken && refreshToken) {
-        try {
-            const accessTokenExpired = isTokenExired(accessToken);
-            if (accessTokenExpired) {
-                await handleGetNewAccessToken({refreshToken: refreshToken, axiosConfig: config});
-            } else {
-                config.headers["Authorization"] = `Bearer ${accessToken}`
+requestInterceptor({
+    axiosInstance: api,
+    tokenStorage: Storage,
+    getNewToken: async ({refreshToken}) => {
+        const resp = await axios.post(`${API_URL}/token/refresh/`, {
+            "refresh": refreshToken
+        })
+        const token = resp.data.access
+        return token
+    },
+    onTokenFailure: ({tokenStorage}) => {
+        tokenStorage.removeTokens()
+        window.location.reload()
+    },
+    onTokenSuccess: ({axiosConfig, accessToken}) => {
+        console.log("Token successfully updated")
+    
+        if(axiosConfig.url == "/token/verify/" && accessToken){
+            axiosConfig.data = {
+                "token": accessToken
             }
-        } catch (err) {
-            window.location.reload()
-            return config
+        } else {
+            axiosConfig.headers["Authorization"] = `Bearer ${accessToken}`;
         }
     }
-    
-    return config;
-}, (error) => {
-    return Promise.reject(error);
-});
+})
+
 
 export default api;
-
 ```
+
+## Implementation Details:
+
+- [Utils](./src/services/utils.jsx)
