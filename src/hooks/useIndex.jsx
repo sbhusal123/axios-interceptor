@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+
 import AuthApi from "../services/authApi";
+import ChatApi from "../services/chatApi";
+
 import Storage from "../services/storage";
 
 export default function useIndex() {
@@ -22,7 +25,10 @@ export default function useIndex() {
     const handleLogin = () => {
       AuthApi.login(username, password).then((resp) => {
         const data = resp.data
-        Storage.setTokens(data)
+        Storage.setTokens({
+          accessToken: data.access,
+          refreshToken: data.refresh
+        })
         setLoggedIn(true)
         alert("Logged In.")
       }).catch(err => {
@@ -47,12 +53,8 @@ export default function useIndex() {
     }
 
     const handleTokenRefresh = () => {
-        const refreshToken = Storage.getRefreshToken()
-        AuthApi.refreshToken(refreshToken).then((resp) => {
-            const data = resp.data
-            Storage.updateAccessToken(data)
-        }).catch(() => {
-            console.log("Unable to refreshToken")
+        ChatApi.sendMessage().then((resp) => {
+          console.log("Message sent::", resp.data)
         })
     }
 

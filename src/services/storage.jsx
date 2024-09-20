@@ -2,13 +2,13 @@ const ACCESS_TOKEN = "@accessToken"
 const REFRESH_TOKEN = "@refreshToken"
 
 export default class Storage {
-    static setTokens(resp){
-        localStorage.setItem(ACCESS_TOKEN, resp.access)
-        localStorage.setItem(REFRESH_TOKEN, resp.refresh)
+    static setTokens({accessToken, refreshToken}){
+        localStorage.setItem(ACCESS_TOKEN, accessToken)
+        localStorage.setItem(REFRESH_TOKEN, refreshToken)
     }
 
-    static updateAccessToken(resp){
-        localStorage.setItem(ACCESS_TOKEN, resp.access)
+    static updateAccessToken({accessToken}){
+        localStorage.setItem(ACCESS_TOKEN, accessToken)
     }
 
     static getAccessToken(){
