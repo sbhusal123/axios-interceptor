@@ -58,7 +58,7 @@ class Storage {
 
 - ``onTokenSuccess`` : called when new token request succeds. ``axiosConfig, accessToken`` as a callback params.
 
-- ``getNewToken`` : axios api call to handle refreshing of token. It must return the string.
+- ``getNewToken`` : axios api call to handle refreshing of token. It must return the string. Note that this mustn't be the call from ``axiosInstance`` to prevent the request looping.
 
 ```js
 import axios from 'axios';
