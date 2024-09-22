@@ -2,7 +2,7 @@ import useIndex from "./hooks/useIndex"
 
 
 function App() {
-  const {password, setPassword, username, setUsername, handleLogin, loggedIn, handleTokenRefresh, handleLogout} = useIndex()
+  const {password, setPassword, username, setUsername, handleLogin, loggedIn, verifyAccessToken, handleLogout} = useIndex()
 
   return (
     <>
@@ -54,10 +54,10 @@ function App() {
         <div className="p-10 bg-green-900 text-white mb-10">
           <div className="flex flex-row space-x-6">
                 <button 
-                  onClick={handleTokenRefresh}
+                  onClick={verifyAccessToken}
                   className={`bg-pink-500 px-4 py-2 rounded-lg disabled:bg-slate-500`}
                 >
-                  RefreshToken
+                  Verify Token
                 </button>
           </div>
         </div>

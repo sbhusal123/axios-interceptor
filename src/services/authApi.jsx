@@ -14,11 +14,6 @@ export default class AuthApi {
         })
     }
 
-    static refreshToken(refreshToken){
-        return api.post("/token/refresh/", {
-            "refresh": refreshToken
-        })
-    }
 
     static handleLogout(refreshToken){
         return api.post("/logout/", {

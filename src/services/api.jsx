@@ -45,6 +45,9 @@ class Storage {
 requestInterceptor({
     axiosInstance: api,
     tokenStorage: Storage,
+    expiryKey: "exp",
+    authHeaderName: "Authorization",
+    tokenPrefix: "Bearer",
     getNewToken: async ({refreshToken}) => {
         const resp = await axios.post(`${API_URL}/token/refresh/`, {
             "refresh": refreshToken
@@ -52,7 +55,7 @@ requestInterceptor({
         const token = resp.data.access
         return token
     },
-    onTokenFailure: ({tokenStorage}) => {
+    onTokenFailure: ({tokenStorage, axiosConfig}) => {
         tokenStorage.removeTokens()
         window.location.reload()
     },
@@ -63,8 +66,6 @@ requestInterceptor({
             axiosConfig.data = {
                 "token": accessToken
             }
-        } else {
-            axiosConfig.headers["Authorization"] = `Bearer ${accessToken}`;
         }
     }
 })

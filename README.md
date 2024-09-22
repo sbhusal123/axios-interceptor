@@ -7,6 +7,13 @@ Basically, the concept is to:
 - If the token is expired, fetch the new token using a refresh token. (Does this by checking `exp` key in token payload)
 - Tokens are stored in localstorage or may be any storage of your choice, just define the static methods define below.
 
+**Packages:**
+```
+    "axios": "^1.7.7",
+    "dayjs": "^1.11.13",
+    "jwt-decode": "^4.0.0",
+```
+
 ## 2. Usage:
 
 ### 2.1 Define Storage Class:
@@ -52,13 +59,20 @@ class Storage {
 
 - ``axiosInstance`` : actual axios instance.
 
-- ``tokenStorage`` : token storage class.
+- ``tokenStorage`` : token storage class. Method signature is as above.
 
-- ``onTokenFailure`` : called when new token request fails. ``tokenStorage`` as a callback params.
+- ``onTokenFailure`` : called when new token request fails. ``tokenStorage, axiosConfig`` in a callback params.
 
-- ``onTokenSuccess`` : called when new token request succeds. ``axiosConfig, accessToken`` as a callback params.
+- ``onTokenSuccess`` : called when new token request succeds. ``axiosConfig, accessToken`` in a callback params.
 
-- ``getNewToken`` : axios api call to handle refreshing of token. It must return the string. Note that this mustn't be the call from ``axiosInstance`` to prevent the request looping.
+- ``getNewToken`` : async function that handles getting of new token with `refreshToken`. Note that this mustn't be the call from ``axiosInstance`` to prevent the request looping.
+
+- ``expiryKey`` expiry key in JWT token, you can check the decoded token right [here](https://jwt.io/). If unset it's default value is `exp`
+
+- ``authHeaderName`` auth header key to pass accessToken, if unset default value is``Authorization``
+
+- ``tokenPrefix`` token prefix string, if unset default value is ``Bearer``
+
 
 ```js
 import axios from 'axios';
@@ -76,14 +90,17 @@ const api = axios.create({
 requestInterceptor({
     axiosInstance: api,
     tokenStorage: Storage,
+    expiryKey: "exp",
+    authHeaderName: "Authorization",
+    tokenPrefix: "Bearer",
     getNewToken: async ({refreshToken}) => {
-        const resp = await axios.post(REFRESH_TOKEN_URL, {
+        const resp = await axios.post(`${API_URL}/token/refresh/`, {
             "refresh": refreshToken
         })
         const token = resp.data.access
         return token
     },
-    onTokenFailure: ({tokenStorage}) => {
+    onTokenFailure: ({tokenStorage, axiosConfig}) => {
         tokenStorage.removeTokens()
         window.location.reload()
     },
@@ -94,8 +111,6 @@ requestInterceptor({
             axiosConfig.data = {
                 "token": accessToken
             }
-        } else {
-            axiosConfig.headers["Authorization"] = `Bearer ${accessToken}`;
         }
     }
 })

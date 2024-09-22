@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import AuthApi from "../services/authApi";
-import ChatApi from "../services/chatApi";
 
 import Storage from "../services/storage";
 
@@ -52,9 +51,13 @@ export default function useIndex() {
 
     }
 
-    const handleTokenRefresh = () => {
-        ChatApi.sendMessage().then((resp) => {
+    const verifyAccessToken = () => {
+      const accessToken = Storage.getAccessToken()
+        AuthApi.verifyAccessToken(accessToken).then((resp) => {
           console.log("Message sent::", resp.data)
+        }).catch(e => {
+            setLoggedIn(false)
+            Storage.removeTokens()
         })
     }
 
@@ -65,7 +68,7 @@ export default function useIndex() {
         setPassword,
         handleLogin,
         loggedIn,
-        handleTokenRefresh,
+        verifyAccessToken,
         handleLogout
     }
 }
