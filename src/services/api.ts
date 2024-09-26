@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import {requestInterceptor} from './utils'
+import requestInterceptor from 'axios-refresh-jwt'
 
 const ACCESS_TOKEN = "@accessToken"
 const REFRESH_TOKEN = "@refreshToken"
@@ -11,33 +11,33 @@ const api = axios.create({
     baseURL: API_URL
 })
 
-class Storage {
-    /**
-     * Note that Storage class should have following methods defined:
-     * getAllTokens
-     * removeTokens
-     * updateAccessToken
-     * setTokens
-    */
+const Storage  = {
+    setTokens: (tokens) => {
+        localStorage.setItem(ACCESS_TOKEN, tokens.accessToken)
+        localStorage.setItem(REFRESH_TOKEN, tokens.refreshToken)
+    },
 
-    static setTokens({accessToken, refreshToken}){
+    updateAccessToken: ({accessToken}) => {
         localStorage.setItem(ACCESS_TOKEN, accessToken)
-        localStorage.setItem(REFRESH_TOKEN, refreshToken)
-    }
+    },
 
-    static updateAccessToken({accessToken}){
-        localStorage.setItem(ACCESS_TOKEN, accessToken)
-    }
+    getAccessToken: () => {
+        return localStorage.getItem(ACCESS_TOKEN)
+    },
 
-    static removeTokens(){
+    getRefreshToken: () => {
+        return localStorage.getItem(REFRESH_TOKEN)
+    },
+
+    removeTokens: () => {
         localStorage.removeItem(ACCESS_TOKEN)
         localStorage.removeItem(REFRESH_TOKEN)
-    }
+    },
 
-    static getAllTokens(){
+    getTokens: () => {
         return {
-            accessToken: localStorage.getItem(ACCESS_TOKEN),
-            refreshToken: localStorage.getItem(REFRESH_TOKEN)
+            accessToken: Storage.getAccessToken(),
+            refreshToken: Storage.getRefreshToken()
         }
     }
 }
