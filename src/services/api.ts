@@ -12,7 +12,7 @@ const api = axios.create({
 })
 
 const Storage  = {
-    setTokens: (tokens) => {
+    setTokens: (tokens: { accessToken: string; refreshToken: string; }) => {
         localStorage.setItem(ACCESS_TOKEN, tokens.accessToken)
         localStorage.setItem(REFRESH_TOKEN, tokens.refreshToken)
     },

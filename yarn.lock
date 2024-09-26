@@ -744,10 +744,10 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-axios-refresh-jwt@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/axios-refresh-jwt/-/axios-refresh-jwt-1.1.0.tgz#f1a2d3301c246d156ed642db1113b784fbdd03c3"
-  integrity sha512-DDxLss9SWBG4aFtkUTZ2SN4yl9wXhC8Uuey/RB1oY9RoKLIbfwDB+t0rfo0AVgr6iZG9A4v6d1jTjrQOt33deQ==
+axios-refresh-jwt@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/axios-refresh-jwt/-/axios-refresh-jwt-1.2.0.tgz#5f8adde891433a9ec5337d063f161d6f00da4198"
+  integrity sha512-w77kSrP8iddXZ9bALulNerZ6zJ7jqdZE08U4qogJAF3qX7ZkuxQ9Urvnfx5TffK3q0+FQ2cnhxcpCCUrSji0fA==
   dependencies:
     axios "^1.7.7"
     dayjs "^1.11.13"
